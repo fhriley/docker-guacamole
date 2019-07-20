@@ -1,6 +1,8 @@
 FROM library/tomcat:9-jre8
 
 ENV ARCH=amd64 \
+  GIT_USER=fhriley \
+  GUAC_SERVER_VER=1.0.1 \
   GUAC_VER=1.0.0 \
   GUACAMOLE_HOME=/app/guacamole \
   PG_MAJOR=9.6 \
@@ -35,14 +37,15 @@ RUN [ "$ARCH" = "armhf" ] && ln -s /usr/local/lib/freerdp /usr/lib/arm-linux-gnu
 RUN [ "$ARCH" = "amd64" ] && ln -s /usr/local/lib/freerdp /usr/lib/x86_64-linux-gnu/freerdp || exit 0
 
 # Install guacamole-server
-RUN curl -SLO "http://apache.org/dyn/closer.cgi?action=download&filename=guacamole/${GUAC_VER}/source/guacamole-server-${GUAC_VER}.tar.gz" \
-  && tar -xzf guacamole-server-${GUAC_VER}.tar.gz \
-  && cd guacamole-server-${GUAC_VER} \
+RUN curl -SLO "https://github.com/${GIT_USER}/guacamole-server/archive/${GUAC_SERVER_VER}.tar.gz" \
+  && tar -xzf ${GUAC_SERVER_VER}.tar.gz \
+  && cd guacamole-server-${GUAC_SERVER_VER} \
+  && autoreconf -fi \
   && ./configure \
   && make -j$(getconf _NPROCESSORS_ONLN) \
   && make install \
   && cd .. \
-  && rm -rf guacamole-server-${GUAC_VER}.tar.gz guacamole-server-${GUAC_VER} \
+  && rm -rf ${GUAC_SERVER_VER}.tar.gz guacamole-server-${GUAC_SERVER_VER} \
   && ldconfig
 
 # Install guacamole-client and postgres auth adapter
